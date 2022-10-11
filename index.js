@@ -12,6 +12,8 @@ var netStats = {
     tx_start: 0,
     rx_session: 0,
     tx_session: 0,
+    rx_speed: 0,
+    tx_speed: 0
 };
 
 var isFirstUpdate = {rx: true, tx: true, rx_setted: false, tx_setted: false};
@@ -44,17 +46,28 @@ powershell.stdout.on('data', function (data) {
         data.map((v)=>{
             switch (v[0]){
                 case 'BytesReceivedPersec':
-                    netStats.rx_total = getMBfromBytes(v[1]);
-                    isFirstUpdate.rx_setted = true;
+                    if (parseInt(v[1])>0){
+                        let rx_total_old = netStats.rx_total;
+                        netStats.rx_total = getMBfromBytes(v[1]);
+                        netStats.rx_speed = (parseFloat(netStats.rx_total) - parseFloat(rx_total_old)).toFixed(3);
+                        isFirstUpdate.rx_setted = true;
+                    };
                     break;
                 case 'BytesSentPersec':
-                    netStats.tx_total = getMBfromBytes(v[1]);
-                    isFirstUpdate.tx_setted = true;
+                    if (parseInt(v[1])>0){
+                        let tx_total_old = netStats.tx_total;
+                        netStats.tx_total = getMBfromBytes(v[1]);
+                        netStats.tx_speed = (parseFloat(netStats.tx_total) - parseFloat(tx_total_old)).toFixed(3);
+                        isFirstUpdate.tx_setted = true;
+                    };
                     break;
                 case 'BytesTotalPersec':
-                    netStats.all_total = getMBfromBytes(v[1]);
+                    if (parseInt(v[1])>0){
+                        netStats.all_total = getMBfromBytes(v[1]);
+                    };
                     break;
                 case 'Name':
+                    //console.log(v[1])
                     break;
                 default:
                     break;
@@ -75,19 +88,19 @@ function calculateNetStats(){
         isFirstUpdate.tx = false;
     }
     if (isFirstUpdate.rx == false){
-        netStats.rx_session = (Number(netStats.rx_total)-Number(netStats.rx_start)).toFixed(2);
+        netStats.rx_session = (Number(netStats.rx_total)-Number(netStats.rx_start)).toFixed(3);
     }
     if (isFirstUpdate.tx == false){
-        netStats.tx_session = (Number(netStats.tx_total)-Number(netStats.tx_start)).toFixed(2);;
+        netStats.tx_session = (Number(netStats.tx_total)-Number(netStats.tx_start)).toFixed(3);;
     }    
 };
 
 function getMBfromBytes(bytes){
-    return (parseInt(bytes)/1000000).toFixed(2);
+    return (parseInt(bytes)/1000000).toFixed(3);
 };
 
 function sumNumStrings(str1, str2){
-    return (Number(str1)+Number(str2)).toFixed(2);
+    return (Number(str1)+Number(str2)).toFixed(3);
 };
 
 function printNetStats(){
@@ -103,7 +116,10 @@ function printNetStats(){
     console.log(`Всего:`);
     console.log(`Получено: ${netStats.rx_total} MB`);
     console.log(`Отправлено: ${netStats.tx_total} MB`);
-    console.log(`Всего: ${netStats.all_total} MB`);    
+    console.log(`Всего: ${netStats.all_total} MB`);  
+    console.log(`Скорость:`);
+    console.log(`Приём: ${netStats.rx_speed} MB/СЕК`);  
+    console.log(`Отдача: ${netStats.tx_speed} MB/СЕК`);  
 };
 
 const powershellCmd = 'Get-WmiObject Win32_PerfRawData_Tcpip_NetworkInterface | select Name,BytesReceivedPersec,BytesSentPersec,BytesTotalPersec | fl'
