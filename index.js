@@ -13,8 +13,19 @@ var netStats = {
     rx_session: 0,
     tx_session: 0,
     rx_speed: 0,
-    tx_speed: 0
+    tx_speed: 0,
+    rx_speeds: [],
+    tx_speeds: [],
+    avg_rx_speed: 0,
+    avg_tx_speed: 0
 };
+
+
+
+const refrash_speed = 3;    //1 = 1 секунда, 3 = 1/3 секунды
+var average_speed_longly = 5; //за указаное количество секунд
+
+average_speed_longly *= refrash_speed;
 
 var isFirstUpdate = {rx: true, tx: true, rx_setted: false, tx_setted: false};
 
@@ -49,7 +60,8 @@ powershell.stdout.on('data', function (data) {
                     if (parseInt(v[1])>0){
                         let rx_total_old = netStats.rx_total;
                         netStats.rx_total = getMBfromBytes(v[1]);
-                        netStats.rx_speed = (parseFloat(netStats.rx_total) - parseFloat(rx_total_old)).toFixed(3);
+                        netStats.rx_speed = ((parseFloat(netStats.rx_total) - parseFloat(rx_total_old))*refrash_speed).toFixed(3);
+                        netStats.rx_speeds.push(Number(netStats.rx_speed));
                         isFirstUpdate.rx_setted = true;
                     };
                     break;
@@ -57,7 +69,9 @@ powershell.stdout.on('data', function (data) {
                     if (parseInt(v[1])>0){
                         let tx_total_old = netStats.tx_total;
                         netStats.tx_total = getMBfromBytes(v[1]);
-                        netStats.tx_speed = (parseFloat(netStats.tx_total) - parseFloat(tx_total_old)).toFixed(3);
+                        netStats.tx_speed = ((parseFloat(netStats.tx_total) - parseFloat(tx_total_old))*refrash_speed).toFixed(3);
+                        netStats.tx_speeds.push(Number(netStats.tx_speed));
+                        
                         isFirstUpdate.tx_setted = true;
                     };
                     break;
@@ -91,8 +105,22 @@ function calculateNetStats(){
         netStats.rx_session = (Number(netStats.rx_total)-Number(netStats.rx_start)).toFixed(3);
     }
     if (isFirstUpdate.tx == false){
-        netStats.tx_session = (Number(netStats.tx_total)-Number(netStats.tx_start)).toFixed(3);;
-    }    
+        netStats.tx_session = (Number(netStats.tx_total)-Number(netStats.tx_start)).toFixed(3);
+    }
+
+    if (netStats.tx_speeds.length>average_speed_longly){
+        netStats.tx_speeds.shift();
+    }
+    if (netStats.rx_speeds.length>average_speed_longly){
+        netStats.rx_speeds.shift();
+    }
+
+
+    netStats.avg_rx_speed = netStats.rx_speeds.length==average_speed_longly?netStats.rx_speeds.reduce((a,b)=>a+b)/average_speed_longly:0;
+    netStats.avg_tx_speed = netStats.tx_speeds.length==average_speed_longly?netStats.tx_speeds.reduce((a,b)=>a+b)/average_speed_longly:0;
+    
+    
+    
 };
 
 function getMBfromBytes(bytes){
@@ -119,7 +147,10 @@ function printNetStats(){
     console.log(`Всего: ${netStats.all_total} MB`);  
     console.log(`Скорость:`);
     console.log(`Приём: ${netStats.rx_speed} MB/СЕК`);  
-    console.log(`Отдача: ${netStats.tx_speed} MB/СЕК`);  
+    console.log(`Отдача: ${netStats.tx_speed} MB/СЕК`);
+    console.log(`Средняя скорость:`);
+    console.log(`Приём: ${netStats.avg_rx_speed.toFixed(3)} MB/СЕК`);  
+    console.log(`Отдача: ${netStats.avg_tx_speed.toFixed(3)} MB/СЕК`);
 };
 
 const powershellCmd = 'Get-WmiObject Win32_PerfRawData_Tcpip_NetworkInterface | select Name,BytesReceivedPersec,BytesSentPersec,BytesTotalPersec | fl'
@@ -133,6 +164,6 @@ setInterval( ()=>{
     } catch (e) {
         console.log(e.toString('utf8'));
     }
-},1000);
+},1000/refrash_speed);
 
 return true;
