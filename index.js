@@ -23,7 +23,7 @@ var netStats = {
 
 
 const refrash_speed = 3;    //1 = 1 секунда, 3 = 1/3 секунды
-var average_speed_longly = 5; //за указаное количество секунд
+var average_speed_longly = 3; //за указаное количество секунд
 
 average_speed_longly *= refrash_speed;
 
