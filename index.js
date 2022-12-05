@@ -3,6 +3,7 @@ console.log('starting...');
 const spawn = require('child_process').spawn;
 const util = require('util');
 const os = require('os');
+const colors = require('colors');
 
 var netStats = {
     all_total: 0,
@@ -22,7 +23,7 @@ var netStats = {
 
 
 
-const refrash_speed = 3;    //1 = 1 секунда, 3 = 1/3 секунды
+const refrash_speed = 5;    //1 = 1 секунда, 3 = 1/3 секунды
 var average_speed_longly = 3; //за указаное количество секунд
 
 average_speed_longly *= refrash_speed;
@@ -147,10 +148,24 @@ function printNetStats(){
     console.log(`Всего: ${netStats.all_total} MB`);  
     console.log(`Скорость:`);
     console.log(`Приём: ${netStats.rx_speed} MB/СЕК`);  
-    console.log(`Отдача: ${netStats.tx_speed} MB/СЕК`);
+    /*if (netStats.tx_speed>=netStats.avg_tx_speed){
+        console.log(`Отдача: ${netStats.tx_speed} MB/СЕК`.green);
+    } else {
+        console.log(`Отдача: ${netStats.tx_speed} MB/СЕК`.red);
+    }*/
+    if (netStats.tx_speed>=0.15){
+        console.log(`Отдача: ${netStats.tx_speed} MB/СЕК`.green);
+    } else {
+        console.log(`Отдача: ${netStats.tx_speed} MB/СЕК`.red);
+    }
     console.log(`Средняя скорость:`);
-    console.log(`Приём: ${netStats.avg_rx_speed.toFixed(3)} MB/СЕК`);  
-    console.log(`Отдача: ${netStats.avg_tx_speed.toFixed(3)} MB/СЕК`);
+    console.log(`Приём: ${netStats.avg_rx_speed.toFixed(3)} MB/СЕК`);
+    if (netStats.avg_tx_speed>=0.15){
+        console.log(`Отдача: ${netStats.avg_tx_speed.toFixed(3)} MB/СЕК`.green);
+    } else {
+        console.log(`Отдача: ${netStats.avg_tx_speed.toFixed(3)} MB/СЕК`.red);
+    }
+    
 };
 
 const powershellCmd = 'Get-WmiObject Win32_PerfRawData_Tcpip_NetworkInterface | select Name,BytesReceivedPersec,BytesSentPersec,BytesTotalPersec | fl'
