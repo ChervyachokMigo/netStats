@@ -142,24 +142,31 @@ function printNetStats(){
     console.log(`Получено: ${netStats.rx_session} MB`);
     console.log(`Отправлено: ${netStats.tx_session} MB`);
     console.log(`Всего: ${sumNumStrings(netStats.rx_session, netStats.tx_session)} MB`);
+
     console.log(`Всего:`);
     console.log(`Получено: ${netStats.rx_total} MB`);
     console.log(`Отправлено: ${netStats.tx_total} MB`);
     console.log(`Всего: ${netStats.all_total} MB`);  
+
     console.log(`Скорость:`);
-    console.log(`Приём: ${netStats.rx_speed} MB/СЕК`);  
-    /*if (netStats.tx_speed>=netStats.avg_tx_speed){
-        console.log(`Отдача: ${netStats.tx_speed} MB/СЕК`.green);
+ 
+    if (netStats.rx_speed>=0.15){
+        console.log(`Приём: ${netStats.rx_speed} MB/СЕК`.green);
     } else {
-        console.log(`Отдача: ${netStats.tx_speed} MB/СЕК`.red);
-    }*/
+        console.log(`Приём: ${netStats.rx_speed} MB/СЕК`.red);
+    }
     if (netStats.tx_speed>=0.15){
         console.log(`Отдача: ${netStats.tx_speed} MB/СЕК`.green);
     } else {
         console.log(`Отдача: ${netStats.tx_speed} MB/СЕК`.red);
     }
+
     console.log(`Средняя скорость:`);
-    console.log(`Приём: ${netStats.avg_rx_speed.toFixed(3)} MB/СЕК`);
+    if (netStats.avg_rx_speed>=0.15){
+        console.log(`Приём: ${netStats.avg_rx_speed.toFixed(3)} MB/СЕК`.green);
+    } else {
+        console.log(`Приём: ${netStats.avg_rx_speed.toFixed(3)} MB/СЕК`.red);
+    }
     if (netStats.avg_tx_speed>=0.15){
         console.log(`Отдача: ${netStats.avg_tx_speed.toFixed(3)} MB/СЕК`.green);
     } else {
